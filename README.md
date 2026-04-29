@@ -38,7 +38,7 @@ This ensures:
 
 ### Observability-First Design
 System health is exposed via:
-- Prometheus metrics
+- Prometheus metrics (`GET /metrics` on the Django API — see `django-prometheus` in `backend/config/settings.py`)
 - Grafana dashboards (embedded in UI)
 
 ---
@@ -76,7 +76,7 @@ npm run dev
 1. Provision infrastructure with Terraform (`infra/environments/dev`): `terraform init` then `terraform apply`. See the header comment in [infra/environments/dev/main.tf](infra/environments/dev/main.tf) for installing the **AWS Load Balancer Controller** (IRSA role ARN is a Terraform output) and using **IngressClass `alb`**.
 2. Build Docker images
 3. Push to ECR
-4. Deploy to EKS
+4. Deploy to EKS (`kubectl apply -k k8s/base` after editing placeholders in `k8s/base/`)
 
 ---
 

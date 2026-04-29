@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  AWS_REGION: "us-east-1"
+  AWS_DEFAULT_REGION: "us-east-1"
+  # Terraform: terraform -chdir=infra/environments/dev output -raw submissions_bucket
+  S3_SUBMISSIONS_BUCKET: "REPLACE_ME_BUCKET"
+  # Terraform: terraform -chdir=infra/environments/dev output -raw submissions_queue_url
+  SQS_SUBMISSIONS_QUEUE_URL: "REPLACE_ME_QUEUE_URL"
+  DJANGO_SETTINGS_MODULE: "config.settings.production"

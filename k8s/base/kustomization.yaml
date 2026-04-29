@@ -1,0 +1,29 @@
+# Apply: kubectl apply -k k8s/base
+#
+# Requires metrics-server (EKS add-on or: kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml).
+#
+# Before first apply:
+# 1. Set IRSA role ARNs on the ServiceAccounts (Terraform: terraform output api_role_arn / worker_role_arn).
+# 2. Edit configmap-app.yaml with S3 bucket, SQS URL, region from Terraform outputs.
+# 3. Create Secret api-secrets (optional key database-url) if the app needs RDS.
+# 4. Set container images to your ECR/repo tags.
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: default
+
+resources:
+  - serviceaccount-api.yaml
+  - serviceaccount-worker.yaml
+  - configmap-app.yaml
+  - deployment-api.yaml
+  - deployment-worker.yaml
+  - service-api.yaml
+  - hpa-api.yaml
+  - hpa-worker.yaml
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: study-platform
+    includeSelectors: true
