@@ -19,7 +19,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: frontend
-          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-frontend@sha256:714ab58de54e878de8dadf0bea59af6026516bb511aee6aa756f1bab6ba31010
+          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-frontend@sha256:37b9cf6fa9fa471f07e630f45544a2baee178b5478c93ca21c20fb75104571e8
           imagePullPolicy: Always
           ports:
             - name: http
@@ -32,6 +32,8 @@ spec:
               value: "http://api.default.svc.cluster.local"
             - name: GRAFANA_URL
               value: "http://study-platform-grafana-1208606315.us-west-1.elb.amazonaws.com"
+            - name: GRAFANA_DASHBOARD_URL
+              value: "http://study-platform-grafana-1208606315.us-west-1.elb.amazonaws.com/d/study-platform-api/study-platform-e28094-django-api?orgId=1&from=now-6h&to=now&timezone=browser&refresh=30s"
           readinessProbe:
             httpGet:
               path: /

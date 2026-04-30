@@ -1,6 +1,7 @@
 const API_BASE = process.env.API_BASE_URL || "";
 const API_HEALTH_BASE = process.env.API_HEALTH_BASE_URL || API_BASE;
 const GRAFANA_URL = process.env.GRAFANA_URL || "";
+const GRAFANA_DASHBOARD_URL = process.env.GRAFANA_DASHBOARD_URL || "";
 export const dynamic = "force-dynamic";
 
 async function getApiStatus() {
@@ -57,6 +58,27 @@ export default async function HomePage() {
             {GRAFANA_URL ? <a href={GRAFANA_URL}>{GRAFANA_URL}</a> : "Grafana not configured"}
           </li>
         </ul>
+      </section>
+
+      <section
+        style={{
+          background: "white",
+          border: "1px solid #e2e8f0",
+          borderRadius: 8,
+          padding: "1rem",
+          marginTop: "1rem"
+        }}
+      >
+        <h2 style={{ marginTop: 0 }}>Grafana Dashboard</h2>
+        {GRAFANA_DASHBOARD_URL ? (
+          <iframe
+            title="Study Platform Grafana Dashboard"
+            src={GRAFANA_DASHBOARD_URL}
+            style={{ width: "100%", minHeight: 700, border: "1px solid #e2e8f0", borderRadius: 6 }}
+          />
+        ) : (
+          <p>Set GRAFANA_DASHBOARD_URL to enable embedded dashboard.</p>
+        )}
       </section>
     </main>
   );
