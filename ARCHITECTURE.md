@@ -25,51 +25,51 @@ It is written for deep operational review (Principal SRE level): component bound
 flowchart TB
   %% ---------- Clients ----------
   U[User Browser]
-  O[SRE / Operator Workstation]
+  O[SRE Operator Workstation]
 
   %% ---------- Public DNS / TLS ----------
-  R53[Route53 Public Zone\ncharliesystems.ai]
-  ACM[ACM Wildcard Cert\n*.charliesystems.ai]
+  R53["Route53 Public Zone: charliesystems.ai"]
+  ACM["ACM DNS validated wildcard TLS charliesystems.ai"]
 
   %% ---------- Public ALBs ----------
-  ALB_API[ALB: study-platform-api\napi.charliesystems.ai\nListeners: 80,443]
-  ALB_APP[ALB: study-platform-frontend\napp.charliesystems.ai\nListeners: 80,443]
-  ALB_GRAF[ALB: study-platform-grafana\ngrafana.charliesystems.ai\nListeners: 80,443]
+  ALB_API["ALB study-platform-api: api.charliesystems.ai, listeners 80 and 443"]
+  ALB_APP["ALB study-platform-frontend: app.charliesystems.ai, listeners 80 and 443"]
+  ALB_GRAF["ALB study-platform-grafana: grafana.charliesystems.ai, listeners 80 and 443"]
 
   %% ---------- EKS ----------
-  subgraph VPC[Study Platform VPC]
-    subgraph EKS[EKS Cluster: study-platform-dev-eks]
-      ING_API[Ingress api\nhost: api.charliesystems.ai]
-      ING_APP[Ingress frontend\nhost: app.charliesystems.ai]
-      ING_GRAF[Ingress grafana\nhost: grafana.charliesystems.ai]
+  subgraph VPC["Study Platform VPC"]
+    subgraph EKS["EKS Cluster study-platform-dev-eks"]
+      ING_API["Ingress api: host api.charliesystems.ai"]
+      ING_APP["Ingress frontend: host app.charliesystems.ai"]
+      ING_GRAF["Ingress grafana: host grafana.charliesystems.ai"]
 
-      SVC_API[Service api\nClusterIP:80]
-      SVC_APP[Service frontend\nClusterIP:80]
-      SVC_GRAF[Service grafana\nClusterIP:3000]
-      SVC_PROM[Service prometheus\nClusterIP:9090]
+      SVC_API["Service api ClusterIP port 80"]
+      SVC_APP["Service frontend ClusterIP port 80"]
+      SVC_GRAF["Service grafana ClusterIP port 3000"]
+      SVC_PROM["Service prometheus ClusterIP port 9090"]
 
-      POD_API[Deployment api\nPod port:8000\n/healthz /metrics /api/*]
-      POD_WORKER[Deployment worker\n(no inbound port)\nSQS consumer stub]
-      POD_APP[Deployment frontend\nPod port:3000]
-      POD_GRAF[Deployment grafana\nPod port:3000]
-      POD_PROM[Deployment prometheus\nPod port:9090]
+      POD_API["Deployment api: pod port 8000, paths healthz metrics api-prefix"]
+      POD_WORKER["Deployment worker: no inbound listener, SQS consumer stub"]
+      POD_APP["Deployment frontend: pod port 3000"]
+      POD_GRAF["Deployment grafana: pod port 3000"]
+      POD_PROM["Deployment prometheus: pod port 9090"]
 
-      HPA_API[HPA api\nCPU+Mem]
-      HPA_WORKER[HPA worker\nCPU+Mem]
+      HPA_API["HPA api CPU and memory"]
+      HPA_WORKER["HPA worker CPU and memory"]
     end
 
-    RDS[(RDS PostgreSQL\nport 5432\nprivate only)]
+    RDS[(RDS PostgreSQL port 5432 private)]
     S3[(S3 submissions bucket)]
     SQS[(SQS submissions queue)]
     DLQ[(SQS DLQ)]
   end
 
   %% ---------- IAM / Identity ----------
-  OIDC[EKS OIDC Provider]
-  IRSA_API[IAM Role: api-irsa]
-  IRSA_WORKER[IAM Role: worker-irsa]
-  IRSA_ALB[IAM Role: alb-controller-irsa]
-  ALBC[AWS Load Balancer Controller\nkube-system]
+  OIDC["EKS OIDC Provider"]
+  IRSA_API["IAM Role api-irsa"]
+  IRSA_WORKER["IAM Role worker-irsa"]
+  IRSA_ALB["IAM Role alb-controller-irsa"]
+  ALBC["AWS Load Balancer Controller kube-system"]
 
   %% ---------- User flows ----------
   U -->|HTTPS 443| R53
@@ -82,25 +82,25 @@ flowchart TB
   ALB_GRAF --> ING_GRAF --> SVC_GRAF --> POD_GRAF
 
   %% ---------- Frontend internal calls ----------
-  POD_APP -->|HTTP 80 -> api.default.svc\nhealth check path /healthz/| SVC_API
+  POD_APP -->|"HTTP 80 to api.default.svc, healthz"| SVC_API
 
   %% ---------- API and worker data plane ----------
   POD_API -->|TCP 5432| RDS
-  POD_API -->|S3 API 443| S3
-  POD_API -->|SQS API 443| SQS
-  POD_WORKER -->|S3 API 443| S3
-  POD_WORKER -->|SQS API 443| SQS
+  POD_API -->|S3 HTTPS 443| S3
+  POD_API -->|SQS HTTPS 443| SQS
+  POD_WORKER -->|S3 HTTPS 443| S3
+  POD_WORKER -->|SQS HTTPS 443| SQS
   SQS --> DLQ
 
   %% ---------- Observability scrape ----------
-  POD_PROM -->|HTTP 80 /metrics| SVC_API
+  POD_PROM -->|"HTTP 80 metrics scrape"| SVC_API
   U -->|HTTPS 443| ALB_GRAF
 
   %% ---------- Control plane ----------
-  O -->|kubectl via EKS API 443\nCIDR allowlisted| EKS
-  ALBC -->|ELBv2/EC2 IAM calls| ALB_API
-  ALBC -->|ELBv2/EC2 IAM calls| ALB_APP
-  ALBC -->|ELBv2/EC2 IAM calls| ALB_GRAF
+  O -->|"kubectl EKS API 443 allowlisted CIDR"| EKS
+  ALBC -->|"ELBv2 EC2 IAM"| ALB_API
+  ALBC -->|"ELBv2 EC2 IAM"| ALB_APP
+  ALBC -->|"ELBv2 EC2 IAM"| ALB_GRAF
   ALBC -->|uses| IRSA_ALB
 
   POD_API -->|AssumeRoleWithWebIdentity| OIDC
