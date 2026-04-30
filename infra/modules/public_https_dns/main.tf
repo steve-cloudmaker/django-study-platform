@@ -5,8 +5,13 @@ locals {
 }
 
 data "aws_route53_zone" "public" {
+  count        = var.public_hosted_zone_id == "" ? 1 : 0
   name         = "${var.public_dns_domain}."
   private_zone = false
+}
+
+locals {
+  route53_zone_id = var.public_hosted_zone_id != "" ? var.public_hosted_zone_id : data.aws_route53_zone.public[0].zone_id
 }
 
 resource "aws_acm_certificate" "ingress" {
@@ -37,7 +42,7 @@ resource "aws_route53_record" "cert_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = data.aws_route53_zone.public.zone_id
+  zone_id         = local.route53_zone_id
 }
 
 resource "aws_acm_certificate_validation" "ingress" {
@@ -62,7 +67,7 @@ data "aws_lb" "grafana" {
 
 resource "aws_route53_record" "api_a" {
   count   = var.create_route53_alb_aliases ? 1 : 0
-  zone_id = data.aws_route53_zone.public.zone_id
+  zone_id = local.route53_zone_id
   name    = local.api_fqdn
   type    = "A"
 
@@ -75,7 +80,7 @@ resource "aws_route53_record" "api_a" {
 
 resource "aws_route53_record" "app_a" {
   count   = var.create_route53_alb_aliases ? 1 : 0
-  zone_id = data.aws_route53_zone.public.zone_id
+  zone_id = local.route53_zone_id
   name    = local.app_fqdn
   type    = "A"
 
@@ -88,7 +93,7 @@ resource "aws_route53_record" "app_a" {
 
 resource "aws_route53_record" "grafana_a" {
   count   = var.create_route53_alb_aliases ? 1 : 0
-  zone_id = data.aws_route53_zone.public.zone_id
+  zone_id = local.route53_zone_id
   name    = local.grafana_fqdn
   type    = "A"
 

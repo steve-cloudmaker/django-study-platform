@@ -3,6 +3,12 @@ variable "public_dns_domain" {
   description = "Public DNS zone (e.g. charliesystems.ai) in Route53 in this account."
 }
 
+variable "public_hosted_zone_id" {
+  type        = string
+  default     = ""
+  description = "Specific Route53 public hosted zone ID to use when multiple zones share the same name."
+}
+
 variable "api_subdomain" {
   type        = string
   default     = "api"

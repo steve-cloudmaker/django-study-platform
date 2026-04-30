@@ -68,6 +68,12 @@ variable "public_dns_domain" {
   description = "Public Route53 zone for ACM + aliases (empty string to skip)."
 }
 
+variable "public_hosted_zone_id" {
+  type        = string
+  default     = "Z0712033I5GWDME6AGEP"
+  description = "Route53 hosted zone ID for public_dns_domain. Set explicitly when duplicate hosted zones exist."
+}
+
 variable "create_route53_alb_aliases" {
   type        = bool
   default     = true

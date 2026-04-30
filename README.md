@@ -49,6 +49,7 @@ System health is exposed via:
 
 ### Frontend Deployment
 - Minimal deployment (no CDN for MVP)
+- Public endpoint served over HTTPS via ALB Ingress (`app.charliesystems.ai`)
 - Future: CloudFront for edge caching
 
 ---
@@ -101,6 +102,8 @@ Grafana dashboards include:
 - Error rate
 - Queue depth
 - Worker throughput
+
+Grafana is exposed at `https://grafana.charliesystems.ai` and can be embedded in the frontend (anonymous Viewer mode + embedding enabled in `k8s/observability/grafana.yaml`).
 
 ---
 
@@ -221,6 +224,20 @@ Then re-apply Kubernetes so the frontend and Grafana use HTTPS URLs:
 kubectl apply -k k8s/base
 kubectl apply -k k8s/observability
 ```
+
+Verify secure endpoints:
+
+```bash
+curl -I https://api.charliesystems.ai/healthz/
+curl -I https://app.charliesystems.ai/
+curl -I https://grafana.charliesystems.ai/
+```
+
+Expected:
+- `https://api.charliesystems.ai/healthz/` returns `200`
+- `https://app.charliesystems.ai/` returns `200`
+- `https://grafana.charliesystems.ai/` returns `200`
+- HTTP variants redirect to HTTPS (`301`)
 
 ---
 

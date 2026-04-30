@@ -102,6 +102,7 @@ module "public_https" {
   source = "../../modules/public_https_dns"
 
   public_dns_domain            = var.public_dns_domain
+  public_hosted_zone_id        = var.public_hosted_zone_id
   api_alb_name                 = var.public_https_api_alb_name
   frontend_alb_name            = var.public_https_frontend_alb_name
   grafana_alb_name             = var.public_https_grafana_alb_name
