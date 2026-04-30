@@ -19,7 +19,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: frontend
-          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-frontend@sha256:625c9f1e8ceea0fa45591f6049121bba68533efd239d9786aaba44afd24ec0c9
+          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-frontend@sha256:714ab58de54e878de8dadf0bea59af6026516bb511aee6aa756f1bab6ba31010
           imagePullPolicy: Always
           ports:
             - name: http
@@ -28,6 +28,8 @@ spec:
           env:
             - name: API_BASE_URL
               value: "http://study-platform-api-26449474.us-west-1.elb.amazonaws.com"
+            - name: API_HEALTH_BASE_URL
+              value: "http://api.default.svc.cluster.local"
             - name: GRAFANA_URL
               value: "http://study-platform-grafana-1208606315.us-west-1.elb.amazonaws.com"
           readinessProbe:

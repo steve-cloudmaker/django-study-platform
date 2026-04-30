@@ -1,11 +1,12 @@
 const API_BASE = process.env.API_BASE_URL || "";
+const API_HEALTH_BASE = process.env.API_HEALTH_BASE_URL || API_BASE;
 const GRAFANA_URL = process.env.GRAFANA_URL || "";
 export const dynamic = "force-dynamic";
 
 async function getApiStatus() {
-  if (!API_BASE) return "not configured";
+  if (!API_HEALTH_BASE) return "not configured";
   try {
-    const res = await fetch(`${API_BASE}/healthz/`, { cache: "no-store" });
+    const res = await fetch(`${API_HEALTH_BASE}/healthz/`, { cache: "no-store" });
     return res.ok ? "healthy" : "unhealthy";
   } catch {
     return "unreachable";
@@ -37,7 +38,7 @@ export default async function HomePage() {
         </p>
         <p style={{ margin: "0.25rem 0" }}>
           API endpoint:{" "}
-          <code>{API_BASE ? `${API_BASE}/healthz/` : "set NEXT_PUBLIC_API_BASE_URL"}</code>
+          <code>{API_HEALTH_BASE ? `${API_HEALTH_BASE}/healthz/` : "set API_HEALTH_BASE_URL"}</code>
         </p>
       </section>
 
