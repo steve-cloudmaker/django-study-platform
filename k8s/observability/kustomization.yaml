@@ -30,6 +30,7 @@ resources:
   - grafana-configmaps.yaml
   - grafana-secret.yaml
   - grafana.yaml
+  - grafana-ingress.yaml
 
 labels:
   - pairs:
