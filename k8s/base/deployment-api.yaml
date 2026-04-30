@@ -20,8 +20,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: api
-          # Replace with your image (e.g. ECR).
-          image: REPLACE_ME_API_IMAGE:latest
+          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-api:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

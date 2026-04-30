@@ -20,7 +20,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: worker
-          image: REPLACE_ME_WORKER_IMAGE:latest
+          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-worker:latest
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
