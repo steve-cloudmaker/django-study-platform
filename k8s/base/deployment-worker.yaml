@@ -32,9 +32,12 @@ spec:
                   name: api-secrets
                   key: database-url
                   optional: true
-          # Replace with your SQS consumer entrypoint (management command or module).
-          command: ["python", "manage.py"]
-          args: ["run_sqs_worker"]
+          # Stub until an SQS consumer management command exists (see QUICKSTART.md).
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "worker stub running — replace command with SQS consumer"
+              exec sleep infinity
           resources:
             requests:
               cpu: 250m

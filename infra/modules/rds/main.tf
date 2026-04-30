@@ -1,3 +1,19 @@
+data "aws_rds_engine_version" "resolved" {
+  count = var.engine_version == null ? 1 : 0
+
+  engine  = "postgres"
+  version = var.engine_major_version
+  latest  = true
+}
+
+locals {
+  # Prefer full version string from AWS; fall back to `version` for older provider schemas.
+  engine_version_effective = coalesce(
+    var.engine_version,
+    try(data.aws_rds_engine_version.resolved[0].version_actual, data.aws_rds_engine_version.resolved[0].version),
+  )
+}
+
 resource "aws_db_subnet_group" "this" {
   name       = "${var.identifier}-subnet"
   subnet_ids = var.private_subnet_ids
@@ -36,7 +52,7 @@ resource "aws_db_instance" "this" {
   identifier = var.identifier
 
   engine               = "postgres"
-  engine_version       = var.engine_version
+  engine_version       = local.engine_version_effective
   instance_class       = var.instance_class
   allocated_storage    = var.allocated_storage
   db_subnet_group_name = aws_db_subnet_group.this.name

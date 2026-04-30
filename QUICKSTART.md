@@ -117,24 +117,30 @@ sed -i.bak \
 
 On macOS, `sed -i ''` works instead of `sed -i.bak`; adjust if needed.
 
-Create DB secret when RDS is ready (password from Secrets Manager):
+Create the DB secret when RDS is ready (Terraform-managed master password in Secrets Manager). The JSON from AWS **may omit `host`**, so merge `rds_endpoint` from Terraform:
 
 ```bash
-SECRET_ARN=$(cd infra/environments/dev && terraform output -raw rds_master_user_secret_arn)
-RDS_HOST=$(cd infra/environments/dev && terraform output -raw rds_endpoint)
-RDS_DB=$(cd infra/environments/dev && terraform output -raw rds_db_name)
-# Resolve password: aws secretsmanager get-secret-value --secret-id "$SECRET_ARN" --query SecretString --output text
+cd infra/environments/dev
+SECRET_ARN=$(terraform output -raw rds_master_user_secret_arn)
+RDS_HOST=$(terraform output -raw rds_endpoint)
+RDS_DB=$(terraform output -raw rds_db_name)
+SECRET_JSON=$(aws secretsmanager get-secret-value --secret-id "$SECRET_ARN" --query SecretString --output text)
+
+DATABASE_URL=$(SECRET_JSON="$SECRET_JSON" RDS_HOST="$RDS_HOST" RDS_DB="$RDS_DB" python3 << 'PY'
+import json, os, urllib.parse
+j = json.loads(os.environ["SECRET_JSON"])
+user = urllib.parse.quote(str(j["username"]), safe="")
+pw = urllib.parse.quote(str(j["password"]), safe="")
+host = (j.get("host") or "").strip() or os.environ["RDS_HOST"]
+port = int(j.get("port") or 5432)
+db = j.get("dbname") or j.get("database") or os.environ["RDS_DB"]
+print(f"postgresql://{user}:{pw}@{host}:{port}/{db}")
+PY
+)
+
+kubectl delete secret api-secrets --ignore-not-found
+kubectl create secret generic api-secrets --from-literal=database-url="$DATABASE_URL"
 ```
-
-Minimal placeholder until you wire Secrets Manager → ExternalSecrets:
-
-```bash
-kubectl create secret generic api-secrets \
-  --from-literal=database-url="postgresql://studyadmin:CHANGE_ME@${RDS_HOST}:5432/${RDS_DB}" \
-  --dry-run=client -o yaml | kubectl apply -f -
-```
-
-Replace `CHANGE_ME` with the password from the RDS master secret JSON (`username`/`password` keys).
 
 ---
 
@@ -142,6 +148,54 @@ Replace `CHANGE_ME` with the password from the RDS master secret JSON (`username
 
 ```bash
 kubectl apply -k k8s/base
+```
+
+Run migrations once (same image and env as the API Deployment):
+
+```bash
+IMAGE=$(grep -E '^\s+image:' k8s/base/deployment-api.yaml | head -1 | awk '{print $2}')
+kubectl delete job django-migrate-once --ignore-not-found
+kubectl apply -f - <<EOF
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: django-migrate-once
+  namespace: default
+spec:
+  ttlSecondsAfterFinished: 86400
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: api
+      containers:
+        - name: migrate
+          image: ${IMAGE}
+          command: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: api-secrets
+                  key: database-url
+EOF
+kubectl wait --for=condition=complete job/django-migrate-once --timeout=300s
+```
+
+HPAs need **metrics-server** (not installed by default on all clusters):
+
+```bash
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.7.2/components.yaml
+kubectl patch deployment metrics-server -n kube-system --type='json' \
+  -p='[{"op": "add", "path": "/spec/template/spec/containers/0/args/-", "value": "--kubelet-insecure-tls"}]'
+```
+
+Observability stack:
+
+```bash
 kubectl apply -k k8s/observability
 ```
 

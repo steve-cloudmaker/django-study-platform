@@ -25,9 +25,16 @@ variable "username" {
   default = "studyadmin"
 }
 
+variable "engine_major_version" {
+  type        = string
+  default     = "16"
+  description = "Major Postgres line when engine_version is null (latest minor in this region/account)."
+}
+
 variable "engine_version" {
-  type    = string
-  default = "16.3"
+  type        = string
+  default     = null
+  description = "Pin to an exact Postgres x.y (e.g. 16.6). Leave null to auto-resolve latest minor for engine_major_version."
 }
 
 variable "instance_class" {

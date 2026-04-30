@@ -46,6 +46,11 @@ output "rds_db_name" {
   value = module.rds.db_name
 }
 
+output "rds_engine_version" {
+  value       = module.rds.engine_version
+  description = "Resolved Postgres engine version on RDS."
+}
+
 output "rds_master_user_secret_arn" {
   value       = module.rds.master_user_secret_arn
   sensitive   = true
