@@ -61,7 +61,8 @@ module "eks" {
   node_max_size       = var.eks_node_max_size
   node_desired_size   = var.eks_node_desired_size
 
-  cluster_enabled_log_types = var.eks_control_plane_log_types
+  cluster_enabled_log_types            = var.eks_control_plane_log_types
+  cluster_endpoint_public_access_cidrs = var.eks_public_access_cidrs
 
   tags = {
     Name = local.cluster_name

@@ -10,6 +10,10 @@ A reliability-focused study collection system designed to demonstrate **SRE best
 
 ---
 
+Step-by-step AWS bootstrap (profile **`dev-lab`**, **`us-west-1`**, locked-down EKS API): [QUICKSTART.md](QUICKSTART.md).
+
+---
+
 ## Architecture Overview
 
 - Next.js frontend (SPA)
@@ -81,6 +85,15 @@ npm run dev
 ---
 
 ## Observability
+
+After the API is running, install Prometheus and Grafana (dashboard JSON + scrape config):
+
+```bash
+kubectl apply -k k8s/observability
+kubectl -n monitoring port-forward svc/grafana 3000:3000
+```
+
+Dashboard source: [k8s/observability/dashboards/study-platform-api.json](k8s/observability/dashboards/study-platform-api.json) (provisioned automatically). Default Grafana login uses Secret `grafana-admin` in namespace `monitoring` — change the password before production.
 
 Grafana dashboards include:
 - API latency (p95)

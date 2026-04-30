@@ -42,6 +42,11 @@ variable "cluster_enabled_log_types" {
   description = "Optional: e.g. [\"api\", \"audit\"] — empty disables extra control plane logs (simplest)."
 }
 
+variable "cluster_endpoint_public_access_cidrs" {
+  type        = list(string)
+  description = "CIDRs allowed to reach the public Kubernetes API endpoint (kubectl). Nodes use the private endpoint when enabled."
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

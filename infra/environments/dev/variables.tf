@@ -1,6 +1,13 @@
 variable "aws_region" {
-  type    = string
-  default = "us-east-1"
+  type        = string
+  default     = "us-west-1"
+  description = "AWS region for all resources in this stack."
+}
+
+variable "eks_public_access_cidrs" {
+  type        = list(string)
+  default     = ["98.51.205.17/32"]
+  description = "Public IPs allowed to call the EKS Kubernetes API (kubectl). Add CIDRs if your IP changes or you use CI."
 }
 
 variable "project" {
