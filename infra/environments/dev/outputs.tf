@@ -68,3 +68,23 @@ output "worker_role_arn" {
 output "alb_controller_role_arn" {
   value = module.iam_irsa.alb_controller_role_arn
 }
+
+output "public_acm_certificate_arn" {
+  value       = length(module.public_https) > 0 ? module.public_https[0].acm_certificate_arn : ""
+  description = "ACM ARN for ALB HTTPS. Run scripts/apply-acm-certificate-to-ingress.sh after kubectl apply ingresses."
+}
+
+output "public_api_https_url" {
+  value       = length(module.public_https) > 0 ? module.public_https[0].api_https_url : ""
+  description = "HTTPS URL for API after DNS propagates."
+}
+
+output "public_app_https_url" {
+  value       = length(module.public_https) > 0 ? module.public_https[0].app_https_url : ""
+  description = "HTTPS URL for frontend."
+}
+
+output "public_grafana_https_url" {
+  value       = length(module.public_https) > 0 ? module.public_https[0].grafana_https_url : ""
+  description = "HTTPS URL for Grafana."
+}

@@ -192,6 +192,38 @@ If `kubectl get ingress` shows no resources, external reachability is not config
 
 ---
 
+### 5) Public HTTPS (`charliesystems.ai`)
+
+Terraform provisions an **AWS-managed ACM certificate** (wildcard `*.charliesystems.ai` plus apex) and **Route53 alias** records:
+
+- `api.charliesystems.ai` → API ALB
+- `app.charliesystems.ai` → frontend ALB
+- `grafana.charliesystems.ai` → Grafana ALB
+
+Defaults live in `infra/environments/dev/variables.tf` (`public_dns_domain`, ALB names). If ALBs do not exist yet, set `create_route53_alb_aliases = false` for the first `terraform apply`, then set it back to `true` after ingresses exist.
+
+```bash
+export AWS_PROFILE=dev-lab
+export AWS_DEFAULT_REGION=us-west-1
+cd infra/environments/dev
+terraform apply
+```
+
+After ingress manifests are applied, attach the certificate ARN to the three ingresses:
+
+```bash
+./scripts/apply-acm-certificate-to-ingress.sh
+```
+
+Then re-apply Kubernetes so the frontend and Grafana use HTTPS URLs:
+
+```bash
+kubectl apply -k k8s/base
+kubectl apply -k k8s/observability
+```
+
+---
+
 ## Future Enhancements
 
 - CDN via CloudFront

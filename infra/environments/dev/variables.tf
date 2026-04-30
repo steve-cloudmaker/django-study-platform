@@ -61,3 +61,33 @@ variable "eks_control_plane_log_types" {
   default     = []
   description = "Optional CloudWatch log types for the EKS control plane, e.g. [\"api\", \"audit\"]."
 }
+
+variable "public_dns_domain" {
+  type        = string
+  default     = "charliesystems.ai"
+  description = "Public Route53 zone for ACM + aliases (empty string to skip)."
+}
+
+variable "create_route53_alb_aliases" {
+  type        = bool
+  default     = true
+  description = "Create api/app/grafana A records to existing ALBs. Requires ALBs from kubectl ingresses. Set false if data.aws_lb lookups fail on first apply."
+}
+
+variable "public_https_api_alb_name" {
+  type        = string
+  default     = "study-platform-api"
+  description = "ALB name for API ingress (must match ingress annotation)."
+}
+
+variable "public_https_frontend_alb_name" {
+  type        = string
+  default     = "study-platform-frontend"
+  description = "ALB name for frontend ingress."
+}
+
+variable "public_https_grafana_alb_name" {
+  type        = string
+  default     = "study-platform-grafana"
+  description = "ALB name for Grafana ingress."
+}

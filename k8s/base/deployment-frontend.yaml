@@ -27,13 +27,13 @@ spec:
               protocol: TCP
           env:
             - name: API_BASE_URL
-              value: "http://study-platform-api-26449474.us-west-1.elb.amazonaws.com"
+              value: "https://api.charliesystems.ai"
             - name: API_HEALTH_BASE_URL
               value: "http://api.default.svc.cluster.local"
             - name: GRAFANA_URL
-              value: "http://study-platform-grafana-1208606315.us-west-1.elb.amazonaws.com"
+              value: "https://grafana.charliesystems.ai"
             - name: GRAFANA_DASHBOARD_URL
-              value: "http://study-platform-grafana-1208606315.us-west-1.elb.amazonaws.com/d/study-platform-api/study-platform-e28094-django-api?orgId=1&from=now-6h&to=now&timezone=browser&refresh=30s"
+              value: "https://grafana.charliesystems.ai/d/study-platform-api/study-platform-e28094-django-api?orgId=1&from=now-6h&to=now&timezone=browser&refresh=30s"
           readinessProbe:
             httpGet:
               path: /

@@ -6,15 +6,18 @@ metadata:
     app.kubernetes.io/name: api
     app.kubernetes.io/component: ingress
   annotations:
+    alb.ingress.kubernetes.io/load-balancer-name: study-platform-api
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "true"
     alb.ingress.kubernetes.io/healthcheck-path: /healthz/
     alb.ingress.kubernetes.io/inbound-cidrs: 98.51.205.17/32
 spec:
   ingressClassName: alb
   rules:
-    - http:
+    - host: api.charliesystems.ai
+      http:
         paths:
           - path: /
             pathType: Prefix

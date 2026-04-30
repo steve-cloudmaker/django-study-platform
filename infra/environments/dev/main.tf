@@ -96,3 +96,18 @@ module "iam_irsa" {
     Name = "${local.name}-irsa"
   }
 }
+
+module "public_https" {
+  count  = var.public_dns_domain != "" ? 1 : 0
+  source = "../../modules/public_https_dns"
+
+  public_dns_domain            = var.public_dns_domain
+  api_alb_name                 = var.public_https_api_alb_name
+  frontend_alb_name            = var.public_https_frontend_alb_name
+  grafana_alb_name             = var.public_https_grafana_alb_name
+  create_route53_alb_aliases   = var.create_route53_alb_aliases
+
+  tags = {
+    Name = "${local.name}-public-https"
+  }
+}
