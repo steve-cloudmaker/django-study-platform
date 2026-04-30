@@ -20,6 +20,7 @@ resources:
   - deployment-api.yaml
   - deployment-worker.yaml
   - service-api.yaml
+  - ingress-api.yaml
   - hpa-api.yaml
   - hpa-worker.yaml
 

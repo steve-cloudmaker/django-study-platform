@@ -104,6 +104,94 @@ Grafana dashboards include:
 
 ---
 
+## Post-Install Full Verification
+
+Use this checklist after `terraform apply` and `kubectl apply` to confirm the stack is healthy.
+
+### 1) Verify AWS resources
+
+```bash
+export AWS_PROFILE=dev-lab
+export AWS_DEFAULT_REGION=us-west-1
+
+cd infra/environments/dev
+terraform output
+```
+
+Confirm these outputs exist and look correct:
+- `cluster_name`
+- `rds_endpoint`
+- `submissions_queue_url`
+- `submissions_bucket`
+- `api_role_arn` and `worker_role_arn`
+
+Then verify core resources are live:
+
+```bash
+aws eks describe-cluster --name "$(terraform output -raw cluster_name)" \
+  --query 'cluster.{name:name,status:status,version:version}' --output table
+
+aws rds describe-db-instances --db-instance-identifier study-platform-dev-postgres \
+  --query 'DBInstances[0].{id:DBInstanceIdentifier,status:DBInstanceStatus,endpoint:Endpoint.Address}' --output table
+
+aws sqs get-queue-attributes --queue-url "$(terraform output -raw submissions_queue_url)" \
+  --attribute-names QueueArn ApproximateNumberOfMessages ApproximateNumberOfMessagesNotVisible --output table
+
+aws s3api head-bucket --bucket "$(terraform output -raw submissions_bucket)"
+```
+
+### 2) Verify Kubernetes workloads
+
+```bash
+aws eks update-kubeconfig --region "$AWS_DEFAULT_REGION" --name "$(terraform output -raw cluster_name)"
+kubectl get nodes -o wide
+kubectl get pods -A
+kubectl get deploy -A
+kubectl get hpa -A
+```
+
+Expect `api`, `worker`, `prometheus`, and `grafana` Deployments to be `READY`.
+
+### 3) Verify API and Grafana health endpoints
+
+```bash
+# Terminal 1
+kubectl port-forward -n default svc/api 18080:80
+
+# Terminal 2
+kubectl port-forward -n monitoring svc/grafana 13000:3000
+```
+
+From a third terminal:
+
+```bash
+curl -i http://127.0.0.1:18080/healthz/
+curl -i http://127.0.0.1:13000/api/health
+```
+
+Expected:
+- API healthcheck returns `HTTP 200` with body `ok`
+- Grafana health returns `HTTP 200` and includes `"database":"ok"`
+
+### 4) Verify external reachability (ALB / Ingress)
+
+External reachability requires an Ingress plus AWS Load Balancer Controller.
+
+```bash
+kubectl get ingress -A -o wide
+```
+
+If an Ingress hostname is present, test publicly:
+
+```bash
+ALB_DNS="<ingress-hostname>"
+curl -i "http://${ALB_DNS}/healthz/"
+```
+
+If `kubectl get ingress` shows no resources, external reachability is not configured yet. In that case, complete AWS Load Balancer Controller + Ingress setup first (see deployment notes in `infra/environments/dev/main.tf`).
+
+---
+
 ## Future Enhancements
 
 - CDN via CloudFront
