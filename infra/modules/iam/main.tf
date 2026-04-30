@@ -13,6 +13,9 @@ data "aws_iam_policy_document" "assume_irsa" {
     alb_controller = {
       sub = "system:serviceaccount:${var.alb_controller_namespace}:${var.alb_controller_service_account}"
     }
+    grafana = {
+      sub = "system:serviceaccount:${var.grafana_namespace}:${var.grafana_service_account}"
+    }
   }
 
   statement {
@@ -153,4 +156,44 @@ resource "aws_iam_role" "alb_controller" {
 resource "aws_iam_role_policy_attachment" "alb_controller" {
   role       = aws_iam_role.alb_controller.name
   policy_arn = aws_iam_policy.alb_controller.arn
+}
+
+data "aws_iam_policy_document" "grafana_cloudwatch" {
+  statement {
+    sid = "CloudWatchRead"
+    actions = [
+      "cloudwatch:DescribeAlarmsForMetric",
+      "cloudwatch:DescribeAlarmHistory",
+      "cloudwatch:DescribeAlarms",
+      "cloudwatch:ListMetrics",
+      "cloudwatch:GetMetricData",
+      "cloudwatch:GetMetricStatistics",
+      "cloudwatch:GetInsightRuleReport",
+    ]
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "Ec2TagDiscovery"
+    actions = [
+      "ec2:DescribeRegions",
+      "ec2:DescribeInstances",
+      "ec2:DescribeTags",
+      "tag:GetResources",
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_role" "grafana" {
+  name               = "${var.name_prefix}-grafana-irsa"
+  assume_role_policy = data.aws_iam_policy_document.assume_irsa["grafana"].json
+
+  tags = var.tags
+}
+
+resource "aws_iam_role_policy" "grafana" {
+  name   = "grafana-cloudwatch"
+  role   = aws_iam_role.grafana.id
+  policy = data.aws_iam_policy_document.grafana_cloudwatch.json
 }

@@ -34,6 +34,16 @@ output "submissions_queue_arn" {
   value = module.sqs_submissions.queue_arn
 }
 
+output "submissions_queue_name" {
+  value       = module.sqs_submissions.queue_name
+  description = "Main SQS queue name; use as Grafana variable for CloudWatch SQS panels."
+}
+
+output "submissions_dlq_name" {
+  value       = module.sqs_submissions.dlq_name
+  description = "DLQ name for CloudWatch panels."
+}
+
 output "rds_endpoint" {
   value = module.rds.endpoint
 }
@@ -67,6 +77,11 @@ output "worker_role_arn" {
 
 output "alb_controller_role_arn" {
   value = module.iam_irsa.alb_controller_role_arn
+}
+
+output "grafana_role_arn" {
+  value       = module.iam_irsa.grafana_role_arn
+  description = "IRSA for Grafana CloudWatch. Annotate SA then restart Grafana deployment."
 }
 
 output "public_acm_certificate_arn" {

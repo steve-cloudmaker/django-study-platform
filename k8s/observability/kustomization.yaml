@@ -8,7 +8,9 @@
 #   kubectl -n monitoring port-forward svc/prometheus 9090:9090
 #
 # Defaults: Grafana admin / password from Secret grafana-admin (change `changeme`).
-# Prometheus scrapes the Django API at api.default.svc.cluster.local:80/metrics (job=django-api).
+# Prometheus scrapes the Django API at api.default.svc.cluster.local:80/metrics (job=django-api),
+# and kube-state-metrics in this namespace for Deployment or HPA series (job=kube-state-metrics).
+# Grafana CloudWatch datasource uses IRSA: annotate ServiceAccount grafana (see grafana-serviceaccount.yaml).
 
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -25,10 +27,13 @@ configMapGenerator:
 
 resources:
   - namespace.yaml
+  - kube-state-metrics-rbac.yaml
+  - kube-state-metrics.yaml
   - prometheus-configmap.yaml
   - prometheus.yaml
   - grafana-configmaps.yaml
   - grafana-secret.yaml
+  - grafana-serviceaccount.yaml
   - grafana.yaml
   - grafana-ingress.yaml
 

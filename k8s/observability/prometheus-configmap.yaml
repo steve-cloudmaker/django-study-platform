@@ -23,6 +23,12 @@ data:
         static_configs:
           - targets: ["api.default.svc.cluster.local:80"]
 
+      - job_name: kube-state-metrics
+        metrics_path: /metrics
+        scrape_interval: 15s
+        static_configs:
+          - targets: ["kube-state-metrics.monitoring.svc.cluster.local:8080"]
+
       # Uncomment when the worker exposes django-prometheus /metrics on a Service port.
       # - job_name: django-worker
       #   metrics_path: /metrics

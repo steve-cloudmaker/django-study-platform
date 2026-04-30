@@ -87,21 +87,25 @@ npm run dev
 
 ## Observability
 
-After the API is running, install Prometheus and Grafana (dashboard JSON + scrape config):
+After the API is running, install Prometheus, kube-state-metrics, and Grafana (dashboard JSON + scrape config):
 
 ```bash
 kubectl apply -k k8s/observability
 kubectl -n monitoring port-forward svc/grafana 3000:3000
 ```
 
+After `terraform apply`, attach the Grafana CloudWatch IAM role to the Grafana ServiceAccount (one-time per cluster):
+
+```bash
+bash scripts/annotate-grafana-irsa.sh
+```
+
 Dashboard source: [k8s/observability/dashboards/study-platform-api.json](k8s/observability/dashboards/study-platform-api.json) (provisioned automatically). Default Grafana login uses Secret `grafana-admin` in namespace `monitoring` — change the password before production.
 
 Grafana dashboards include:
-- API latency (p95)
-- Request rate
-- Error rate
-- Queue depth
-- Worker throughput
+- Django API: request rate, status mix, latency, 5xx ratio (Prometheus `job=django-api`)
+- Worker: Deployment desired/available/updated replicas and HPA min/current/max (Prometheus via **kube-state-metrics**, `job=kube-state-metrics`)
+- SQS: main queue visible and in-flight counts, DLQ visible messages (CloudWatch; queue names are dashboard variables — align with `terraform output submissions_queue_name` / `submissions_dlq_name`)
 
 Grafana is exposed at `https://grafana.charliesystems.ai` and can be embedded in the frontend (anonymous Viewer mode + embedding enabled in `k8s/observability/grafana.yaml`).
 

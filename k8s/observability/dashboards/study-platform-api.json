@@ -223,11 +223,296 @@
       "type": "timeseries"
     },
     {
-      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 18},
-      "id": 5,
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 18},
+      "id": 100,
+      "panels": [],
+      "title": "Worker (Kubernetes state)",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 19},
+      "id": 6,
+      "options": {
+        "legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"mode": "multi", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "kube_deployment_spec_replicas{job=\"kube-state-metrics\",namespace=\"default\",deployment=\"worker\"}",
+          "legendFormat": "desired",
+          "refId": "A"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "kube_deployment_status_replicas_available{job=\"kube-state-metrics\",namespace=\"default\",deployment=\"worker\"}",
+          "legendFormat": "available",
+          "refId": "B"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "kube_deployment_status_replicas_updated{job=\"kube-state-metrics\",namespace=\"default\",deployment=\"worker\"}",
+          "legendFormat": "updated",
+          "refId": "C"
+        }
+      ],
+      "title": "Worker Deployment replicas",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 19},
+      "id": 7,
+      "options": {
+        "legend": {"calcs": ["lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true},
+        "tooltip": {"mode": "multi", "sort": "none"}
+      },
+      "targets": [
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "kube_horizontalpodautoscaler_status_current_replicas{job=\"kube-state-metrics\",namespace=\"default\",horizontalpodautoscaler=\"worker\"}",
+          "legendFormat": "current",
+          "refId": "A"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "kube_horizontalpodautoscaler_spec_min_replicas{job=\"kube-state-metrics\",namespace=\"default\",horizontalpodautoscaler=\"worker\"}",
+          "legendFormat": "min",
+          "refId": "B"
+        },
+        {
+          "datasource": {"type": "prometheus", "uid": "prometheus"},
+          "expr": "kube_horizontalpodautoscaler_spec_max_replicas{job=\"kube-state-metrics\",namespace=\"default\",horizontalpodautoscaler=\"worker\"}",
+          "legendFormat": "max",
+          "refId": "C"
+        }
+      ],
+      "title": "Worker HPA replica bounds",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27},
+      "id": 101,
+      "panels": [],
+      "title": "SQS (CloudWatch)",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "cloudwatch", "uid": "cloudwatch"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 28},
+      "id": 8,
+      "options": {
+        "legend": {"calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true},
+        "tooltip": {"mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {"type": "cloudwatch", "uid": "cloudwatch"},
+          "dimensions": {"QueueName": "$sqs_main"},
+          "expression": "",
+          "id": "",
+          "label": "",
+          "logGroups": [],
+          "matchExact": true,
+          "metricEditorMode": 0,
+          "metricName": "ApproximateNumberOfMessagesVisible",
+          "metricQueryType": 0,
+          "namespace": "AWS/SQS",
+          "period": "",
+          "queryMode": "Metrics",
+          "refId": "A",
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average"
+        },
+        {
+          "alias": "",
+          "datasource": {"type": "cloudwatch", "uid": "cloudwatch"},
+          "dimensions": {"QueueName": "$sqs_main"},
+          "expression": "",
+          "hide": false,
+          "id": "",
+          "label": "",
+          "logGroups": [],
+          "matchExact": true,
+          "metricEditorMode": 0,
+          "metricName": "ApproximateNumberOfMessagesNotVisible",
+          "metricQueryType": 0,
+          "namespace": "AWS/SQS",
+          "period": "",
+          "queryMode": "Metrics",
+          "refId": "B",
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average"
+        }
+      ],
+      "title": "Main queue depth (visible and in-flight)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "cloudwatch", "uid": "cloudwatch"},
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {"type": "linear"},
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
+          },
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 28},
+      "id": 9,
+      "options": {
+        "legend": {"calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true},
+        "tooltip": {"mode": "single", "sort": "none"}
+      },
+      "targets": [
+        {
+          "alias": "",
+          "datasource": {"type": "cloudwatch", "uid": "cloudwatch"},
+          "dimensions": {"QueueName": "$sqs_dlq"},
+          "expression": "",
+          "id": "",
+          "label": "",
+          "logGroups": [],
+          "matchExact": true,
+          "metricEditorMode": 0,
+          "metricName": "ApproximateNumberOfMessagesVisible",
+          "metricQueryType": 0,
+          "namespace": "AWS/SQS",
+          "period": "",
+          "queryMode": "Metrics",
+          "refId": "A",
+          "region": "default",
+          "sqlExpression": "",
+          "statistic": "Average"
+        }
+      ],
+      "title": "DLQ visible messages",
+      "type": "timeseries"
+    },
+    {
+      "gridPos": {"h": 4, "w": 24, "x": 0, "y": 36},
+      "id": 10,
       "options": {
         "mode": "markdown",
-        "content": "## Worker & queue metrics\n\nThese panels target **`django-prometheus`** on the API (`job=django-api`). To chart workers, expose `/metrics` from the worker Deployment and add a scrape job (for example `django-worker`). For **Amazon SQS queue depth**, use the AWS CloudWatch data source or `yet-another-cloudwatch-exporter` — not included in this MVP manifest set."
+        "content": "**SQS queue names** are dashboard variables (`sqs_main`, `sqs_dlq`); defaults match Terraform `study-platform` / `dev`. **CloudWatch** requires Grafana IRSA: `terraform output -raw grafana_role_arn`, annotate `monitoring/grafana` ServiceAccount, restart Grafana. **Worker** series come from **kube-state-metrics** scraped as `job=kube-state-metrics`."
       },
       "title": "Notes",
       "type": "text"
@@ -235,13 +520,40 @@
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["study-platform", "django", "prometheus"],
-  "templating": {"list": []},
+  "tags": ["study-platform", "django", "prometheus", "sqs", "cloudwatch"],
+  "templating": {
+    "list": [
+      {
+        "current": {"selected": true, "text": "study-platform-dev-submissions", "value": "study-platform-dev-submissions"},
+        "hide": 0,
+        "label": "Main SQS queue name",
+        "name": "sqs_main",
+        "options": [
+          {"selected": true, "text": "study-platform-dev-submissions", "value": "study-platform-dev-submissions"}
+        ],
+        "query": "study-platform-dev-submissions",
+        "skipUrlSync": false,
+        "type": "constant"
+      },
+      {
+        "current": {"selected": true, "text": "study-platform-dev-submissions-dlq", "value": "study-platform-dev-submissions-dlq"},
+        "hide": 0,
+        "label": "DLQ name",
+        "name": "sqs_dlq",
+        "options": [
+          {"selected": true, "text": "study-platform-dev-submissions-dlq", "value": "study-platform-dev-submissions-dlq"}
+        ],
+        "query": "study-platform-dev-submissions-dlq",
+        "skipUrlSync": false,
+        "type": "constant"
+      }
+    ]
+  },
   "time": {"from": "now-6h", "to": "now"},
   "timepicker": {},
   "timezone": "browser",
-  "title": "Study Platform — Django API",
+  "title": "Study Platform — API, workers, and queues",
   "uid": "study-platform-api",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

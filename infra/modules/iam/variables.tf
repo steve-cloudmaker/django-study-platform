@@ -43,6 +43,17 @@ variable "alb_controller_service_account" {
   default = "aws-load-balancer-controller"
 }
 
+variable "grafana_namespace" {
+  type        = string
+  default     = "monitoring"
+  description = "Namespace where Grafana runs (IRSA trust for CloudWatch)."
+}
+
+variable "grafana_service_account" {
+  type    = string
+  default = "grafana"
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
