@@ -29,14 +29,32 @@ Step-by-step AWS bootstrap (profile **`dev-lab`**, **`us-west-1`**, locked-down 
 ## Key Design Decisions
 
 ### Async Submission Pipeline
-Submissions are:
-1. Stored in S3
-2. Sent to SQS
-3. Processed asynchronously by workers
+Submissions (MVP lab):
+1. **Payload text (≤2k)** is stored in **PostgreSQL** with status `pending`.
+2. A minimal envelope (`study_id`, `submission_id`, `request_id`) is sent to **SQS**.
+3. The **worker** marks the row `processed` (idempotent). **HTTP 202** is returned on enqueue success.
 
-This ensures:
-- Fast API response times
-- Resilience under load
+S3 remains in the platform for future raw-object storage; this slice does not write submission bodies to S3.
+
+---
+
+### HTTP API contract (locked for MVP)
+
+| Topic | Behavior |
+|--------|-----------|
+| **Rate limiting** | `API_RATE_LIMIT` (e.g. `120/minute`, DRF throttle). **Effective per API pod** (in-memory cache); multiple replicas multiply allowance—documented limitation for the lab. Prefer ALB/WAF for hard edges. |
+| **Study list `limit`** | Default **10** (`DEFAULT_STUDY_LIST_LIMIT`). Capped at **100** (`MAX_STUDY_LIST_LIMIT`). |
+| **Study `name` uniqueness** | **Case-insensitive** unique (`Alpha` conflicts with `alpha`). Names are trimmed on create. |
+| **Enqueue failure** | If SQS `SendMessage` fails after the DB insert, the **submission row is deleted** and the API returns **503** with `code: enqueue_failed`. |
+
+**Endpoints** (anonymous, CORS allowed via `DJANGO_CORS_ALLOW_ALL` by default):
+
+- `GET/POST /api/studies/` — list (`?id=<uuid>&name=<str>&limit=<n>`) or create `{"name":"..."}`.
+- `GET /api/studies/<study_id>/` — study detail.
+- `POST /api/studies/<study_id>/submissions/` — create `{"content":"..."}` → **202** + `Location` (worker processes asynchronously).
+- `GET /api/studies/<study_id>/submissions/<submission_id>/` — submission detail.
+
+**Caps:** `MAX_STUDY_COUNT` rejects new studies with **409** (`code: max_studies`).
 
 ---
 

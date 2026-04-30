@@ -92,7 +92,6 @@ QUEUE=$(terraform output -raw submissions_queue_url)
 REGION=$(terraform output -raw aws_region)
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 IMAGE_API="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/study-platform-api:latest"
-IMAGE_WORKER="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/study-platform-worker:latest"
 cd ../..
 
 sed -i.bak \
@@ -109,11 +108,9 @@ sed -i.bak \
 sed -i.bak \
   -e "s|REPLACE_ME_API_IMAGE:latest|${IMAGE_API}|g" \
   k8s/base/deployment-api.yaml
-
-sed -i.bak \
-  -e "s|REPLACE_ME_WORKER_IMAGE:latest|${IMAGE_WORKER}|g" \
-  k8s/base/deployment-worker.yaml
 ```
+
+The worker Deployment uses the **same API image** and `python manage.py run_submission_worker`; ensure `k8s/base/deployment-worker.yaml` points at your `study-platform-api` ECR URL after you build and push.
 
 On macOS, `sed -i ''` works instead of `sed -i.bak`; adjust if needed.
 

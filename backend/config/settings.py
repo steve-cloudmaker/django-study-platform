@@ -15,6 +15,14 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
+AWS_REGION = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "us-west-1"
+SQS_SUBMISSIONS_QUEUE_URL = os.environ.get("SQS_SUBMISSIONS_QUEUE_URL", "")
+
+MAX_STUDY_COUNT = int(os.environ.get("MAX_STUDY_COUNT", "10000"))
+DEFAULT_STUDY_LIST_LIMIT = int(os.environ.get("DEFAULT_STUDY_LIST_LIMIT", "10"))
+MAX_STUDY_LIST_LIMIT = int(os.environ.get("MAX_STUDY_LIST_LIMIT", "100"))
+API_RATE_LIMIT = os.environ.get("API_RATE_LIMIT", "120/minute")
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -22,6 +30,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "django_prometheus",
     "rest_framework",
     "api",
@@ -29,6 +38,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -99,6 +109,23 @@ USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+CORS_ALLOW_ALL_ORIGINS = os.environ.get("DJANGO_CORS_ALLOW_ALL", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "study-platform-throttle",
+    }
+}
+
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
 }

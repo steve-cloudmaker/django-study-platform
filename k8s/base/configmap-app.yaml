@@ -3,10 +3,16 @@ kind: ConfigMap
 metadata:
   name: app-config
 data:
-  AWS_REGION: "us-east-1"
-  AWS_DEFAULT_REGION: "us-east-1"
+  AWS_REGION: "us-west-1"
+  AWS_DEFAULT_REGION: "us-west-1"
   # Terraform: terraform -chdir=infra/environments/dev output -raw submissions_bucket
   S3_SUBMISSIONS_BUCKET: "REPLACE_ME_BUCKET"
   # Terraform: terraform -chdir=infra/environments/dev output -raw submissions_queue_url
   SQS_SUBMISSIONS_QUEUE_URL: "REPLACE_ME_QUEUE_URL"
   DJANGO_SETTINGS_MODULE: "config.settings"
+  # Lab limits (see README "API contract")
+  MAX_STUDY_COUNT: "10000"
+  DEFAULT_STUDY_LIST_LIMIT: "10"
+  MAX_STUDY_LIST_LIMIT: "100"
+  API_RATE_LIMIT: "120/minute"
+  DJANGO_CORS_ALLOW_ALL: "true"

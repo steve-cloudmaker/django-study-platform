@@ -20,7 +20,8 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: worker
-          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-worker:latest
+          # Same image as API (backend Dockerfile); overrides entrypoint to run SQS consumer.
+          image: 164083713732.dkr.ecr.us-west-1.amazonaws.com/study-platform-api:latest
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
@@ -32,12 +33,7 @@ spec:
                   name: api-secrets
                   key: database-url
                   optional: true
-          # Stub until an SQS consumer management command exists (see QUICKSTART.md).
-          command: ["/bin/sh", "-c"]
-          args:
-            - |
-              echo "worker stub running — replace command with SQS consumer"
-              exec sleep infinity
+          command: ["python", "manage.py", "run_submission_worker"]
           resources:
             requests:
               cpu: 250m
