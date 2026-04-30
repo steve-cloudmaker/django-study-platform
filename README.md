@@ -101,6 +101,25 @@ npm run dev
 3. Push to ECR
 4. Deploy to EKS (`kubectl apply -k k8s/base` after editing placeholders in `k8s/base/`)
 
+### After API or model changes (runtime refresh)
+
+The cluster runs whatever digest/tag ECR resolves for `study-platform-api:latest`. **Rebuild and push** whenever `backend/` changes, then:
+
+```bash
+kubectl apply -k k8s/base
+kubectl rollout restart deployment/api deployment/worker -n default
+kubectl rollout status deployment/api deployment/worker -n default --timeout=300s
+kubectl exec -n default deploy/api -- python manage.py migrate --noinput
+```
+
+Smoke test against the public ingress (override host if needed):
+
+```bash
+BASE_URL=https://api.charliesystems.ai bash scripts/smoke-test-api.sh
+```
+
+Until a new API image is deployed, `run_submission_worker` is missing from the image and worker pods may **CrashLoop** if the manifest points at an old `:latest` digest—fix by pushing a fresh image or temporarily using the previous worker stub command.
+
 ---
 
 ## Observability
