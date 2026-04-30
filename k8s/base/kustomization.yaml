@@ -17,6 +17,9 @@ resources:
   - serviceaccount-api.yaml
   - serviceaccount-worker.yaml
   - configmap-app.yaml
+  - deployment-frontend.yaml
+  - service-frontend.yaml
+  - ingress-frontend.yaml
   - deployment-api.yaml
   - deployment-worker.yaml
   - service-api.yaml
