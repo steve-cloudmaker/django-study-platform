@@ -94,14 +94,21 @@ QUESTION_BANK = [
 
 def build_survey(index: int, rng: random.Random) -> dict:
     picks = rng.sample(QUESTION_BANK, k=5)
+    questions = []
+    for j, (prompt, options) in enumerate(picks):
+        questions.append(
+            {
+                "id": j + 1,
+                "prompt": prompt,
+                "options": options,
+                "response": rng.choice(options),
+            }
+        )
     return {
         "survey_id": f"phone-usage-{index:03d}",
         "topic": "Smartphone usage habits",
         "version": 1,
-        "questions": [
-            {"id": j + 1, "prompt": q, "options": opts}
-            for j, (q, opts) in enumerate(picks)
-        ],
+        "questions": questions,
     }
 
 
