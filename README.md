@@ -92,6 +92,10 @@ npm install
 npm run dev
 ```
 
+### API load test (optional)
+
+See [loadtest/README.md](loadtest/README.md): Textual TUI, configurable read/write QPS, 100 cached smartphone-usage surveys as submission payloads.
+
 ---
 
 ## Deployment (High-Level)
