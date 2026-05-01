@@ -94,7 +94,7 @@ npm run dev
 
 ### API load test (optional)
 
-See [loadtest/README.md](loadtest/README.md): Textual TUI, configurable read/write QPS, 100 cached smartphone-usage surveys as submission payloads.
+See [loadtest/README.md](loadtest/README.md): Textual TUI, read/write QPS, **duration** and **ramp-up**, 100 cached smartphone-usage surveys as submission payloads.
 
 ---
 

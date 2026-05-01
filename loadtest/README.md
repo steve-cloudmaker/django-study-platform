@@ -14,11 +14,20 @@ python3 generate_surveys.py
 ## Run
 
 ```bash
-.venv/bin/python main.py --base-url https://api.charliesystems.ai --read-qps 5 --write-qps 1
+.venv/bin/python main.py \
+  --base-url https://api.charliesystems.ai \
+  --read-qps 5 \
+  --write-qps 1 \
+  --duration 120 \
+  --ramp-up 20
 ```
 
-- **`q`**: quit.
+- **`q`**: quit early.
+- **`--duration SEC`**: stop after this many seconds (**default 300**). Use **`0`** to run until you press `q`.
+- **`--ramp-up SEC`**: linear ramp — effective read and write QPS start at 0 and reach the targets over this window (**default 30**). Use **`0`** for full rate from the start.
 - **`--insecure`**: skip TLS verify (lab only).
+
+If **`--ramp-up`** is greater than **`--duration`**, the tool exits with an error so you never reach full target QPS.
 
 ## Caveats
 

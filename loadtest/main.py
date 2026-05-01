@@ -6,6 +6,7 @@ Writes: POST /api/studies/ then POST .../submissions/ (body = survey JSON, ≤2k
 Reads: GET /api/studies/, GET /api/studies/{id}/, GET .../submissions/{sid}/ using IDs from successful writes.
 
 Note: API DRF throttling (API_RATE_LIMIT) caps per-IP QPS; raise limits for heavy tests.
+Default ``--duration`` stops the run; ``--ramp-up`` scales read/write QPS linearly from 0 to target.
 """
 from __future__ import annotations
 
@@ -112,6 +113,7 @@ class LoadRunner:
         base_url: str,
         read_qps: float,
         write_qps: float,
+        ramp_up: float,
         surveys: list[str],
         stats: Stats,
         insecure: bool,
@@ -119,14 +121,25 @@ class LoadRunner:
         self.base = base_url.rstrip("/")
         self.read_qps = read_qps
         self.write_qps = write_qps
+        self.ramp_up = ramp_up
         self.surveys = surveys
         self.stats = stats
+        self.start_at = 0.0  # set in App.on_mount together with wall clock
         self.client = httpx.AsyncClient(
             base_url=self.base,
             timeout=httpx.Timeout(30.0),
             verify=not insecure,
             headers={"User-Agent": "study-platform-loadtest/1.0"},
         )
+
+    def ramp_factor(self) -> float:
+        """Linear ramp from 0 → 1 over ``ramp_up`` seconds (1.0 immediately if ramp_up is 0)."""
+        if self.ramp_up <= 0:
+            return 1.0
+        if self.start_at <= 0:
+            return 0.0
+        elapsed = time.perf_counter() - self.start_at
+        return min(1.0, max(0.0, elapsed / self.ramp_up))
 
     async def close(self) -> None:
         await self.client.aclose()
@@ -185,9 +198,16 @@ class LoadRunner:
     async def write_loop(self, stop: asyncio.Event) -> None:
         if self.write_qps <= 0:
             return
-        delay = 1.0 / self.write_qps
         while not stop.is_set():
+            eff = self.write_qps * self.ramp_factor()
+            if eff < 1e-9:
+                try:
+                    await asyncio.wait_for(stop.wait(), timeout=0.05)
+                except TimeoutError:
+                    pass
+                continue
             await self.write_once()
+            delay = 1.0 / eff
             try:
                 await asyncio.wait_for(stop.wait(), timeout=delay)
             except TimeoutError:
@@ -196,9 +216,16 @@ class LoadRunner:
     async def read_loop(self, stop: asyncio.Event) -> None:
         if self.read_qps <= 0:
             return
-        delay = 1.0 / self.read_qps
         while not stop.is_set():
+            eff = self.read_qps * self.ramp_factor()
+            if eff < 1e-9:
+                try:
+                    await asyncio.wait_for(stop.wait(), timeout=0.05)
+                except TimeoutError:
+                    pass
+                continue
             await self.read_once()
+            delay = 1.0 / eff
             try:
                 await asyncio.wait_for(stop.wait(), timeout=delay)
             except TimeoutError:
@@ -218,6 +245,7 @@ class LoadTestApp(App):
             base_url=args.base_url,
             read_qps=args.read_qps,
             write_qps=args.write_qps,
+            ramp_up=args.ramp_up,
             surveys=self.surveys,
             stats=self.stats,
             insecure=args.insecure,
@@ -238,17 +266,27 @@ class LoadTestApp(App):
 
     async def on_mount(self) -> None:
         self._t0 = time.perf_counter()
+        self.runner.start_at = self._t0
+        dur_hint = f"{self.args.duration}s" if self.args.duration > 0 else "∞"
         self.query_one("#hint", Static).update(
             "[bold]q[/bold] quit  |  "
             f"base=[cyan]{self.args.base_url}[/cyan]  "
             f"read_qps={self.args.read_qps} write_qps={self.args.write_qps}  "
+            f"ramp=[yellow]{self.args.ramp_up}s[/yellow] duration=[yellow]{dur_hint}[/yellow]  "
             f"surveys_cached={len(self.surveys)}"
         )
         self._tasks = [
             asyncio.create_task(self.runner.write_loop(self._stop)),
             asyncio.create_task(self.runner.read_loop(self._stop)),
         ]
+        if self.args.duration > 0:
+            self._tasks.append(asyncio.create_task(self._duration_watch()))
         self.set_interval(0.2, self._refresh)
+
+    async def _duration_watch(self) -> None:
+        await asyncio.sleep(self.args.duration)
+        self._stop.set()
+        self.exit()
 
     async def on_unmount(self) -> None:
         self._stop.set()
@@ -263,8 +301,14 @@ class LoadTestApp(App):
     def _refresh(self) -> None:
         s = self.stats.snapshot()
         elapsed = time.perf_counter() - self._t0
+        ramp_pct = 100.0 * self.runner.ramp_factor()
+        if self.args.duration > 0:
+            rem = max(0.0, self.args.duration - elapsed)
+            rem_s = f"{rem:.1f}s left"
+        else:
+            rem_s = "no limit (press q)"
         text = (
-            f"[bold]Load test[/bold]  elapsed={elapsed:.1f}s\n\n"
+            f"[bold]Load test[/bold]  elapsed={elapsed:.1f}s  {rem_s}  ramp={ramp_pct:.0f}% of target QPS\n\n"
             f"Writes: ok={s['writes_ok']} err={s['writes_err']}  "
             f"p50={s['write_p50_ms']:.1f}ms p95={s['write_p95_ms']:.1f}ms\n"
             f"Reads:  ok={s['reads_ok']} err={s['reads_err']}  "
@@ -281,6 +325,20 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--read-qps", type=float, default=2.0, help="Target read requests per second (0=off)")
     p.add_argument("--write-qps", type=float, default=0.5, help="Target write pairs per second (0=off)")
     p.add_argument(
+        "--duration",
+        type=float,
+        default=300.0,
+        metavar="SEC",
+        help="Stop after this many seconds (0 = run until you press q)",
+    )
+    p.add_argument(
+        "--ramp-up",
+        type=float,
+        default=30.0,
+        metavar="SEC",
+        help="Linear ramp: QPS scales from 0 to target over this many seconds (0 = no ramp)",
+    )
+    p.add_argument(
         "--insecure",
         action="store_true",
         help="Disable TLS certificate verification",
@@ -294,6 +352,10 @@ def main() -> None:
         raise SystemExit("QPS must be >= 0")
     if args.read_qps == 0 and args.write_qps == 0:
         raise SystemExit("Set at least one of --read-qps or --write-qps to a value > 0")
+    if args.duration < 0 or args.ramp_up < 0:
+        raise SystemExit("--duration and --ramp-up must be >= 0")
+    if args.ramp_up > 0 and args.duration > 0 and args.ramp_up > args.duration:
+        raise SystemExit("--ramp-up should be <= --duration so load reaches full target QPS before exit")
     LoadTestApp(args).run()
 
 
